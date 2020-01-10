@@ -1,3 +1,5 @@
+# Documentation
+
 import sublime, sublime_plugin
 
 class ExampleCommand(sublime_plugin.TextCommand):
