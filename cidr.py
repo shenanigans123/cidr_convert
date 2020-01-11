@@ -5,6 +5,62 @@ import sublime, sublime_plugin
 class CidrOnCommand(sublime_plugin.TextCommand):
 	def run(self, edit):
 
+		masks = {
+		"255.255.255.255": "/32",
+		"255.255.255.254": "/31",
+		"255.255.255.252": "/30",
+		"255.255.255.248": "/29",
+		"255.255.255.240": "/28",
+		"255.255.255.224": "/27",
+		"255.255.255.192": "/26",
+		"255.255.255.128": "/25",
+		"255.255.255.0": "/24",
+		"255.255.254.0": "/23",
+		"255.255.252.0": "/22",
+		"255.255.248.0": "/21",
+		"255.255.240.0": "/20",
+		"255.255.224.0": "/19",
+		"255.255.192.0": "/18",
+		"255.255.128.0": "/17",
+		"255.255.0.0": "/16",
+		"255.254.0.0": "/15",
+		"255.252.0.0": "/14",
+		"255.248.0.0": "/13",
+		"255.240.0.0": "/12",
+		"255.224.0.0": "/11",
+		"255.192.0.0": "/10",
+		"255.128.0.0": "/9",
+		"255.0.0.0": "/8"
+		}
+
+		for mask in masks:
+			self.cidr_on(edit, mask, masks.get(mask))
+
+	def cidr_on(self, edit, mask, cidr):
+		ipmasks = self.view.find_all("\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3} " + mask)
+		ipmasks.reverse()
+		masks = []
+
+		for region in ipmasks:
+			regionstring = self.view.substr(region).split()
+			regionstart = region.end() - len(regionstring[1]) - 1
+			masks.append(sublime.Region(regionstart, region.end()))
+
+		for region in masks:
+			self.view.replace(edit, region, cidr)
+
+
+
+
+		#debug:
+#		for region in ipmasks:
+#			self.view.insert(edit, self.view.size(), "\nIP: " + self.view.substr(region))
+#
+#		for region in masks:
+#			self.view.insert(edit, self.view.size(), "\nIP: " + self.view.substr(region))
+
+
+
 #		ipmasks = self.view.find_all("\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3} 255\.255\.255\.255")
 #		regionstring = ""
 #		masks = []
@@ -32,53 +88,3 @@ class CidrOnCommand(sublime_plugin.TextCommand):
 #				 + "\nregionend: " + str(regionend)
 #				 + "\nregionstart: " + str(regionstart)
 #				 + "\nnewregion: " + newregion)
-
-		masks = ["255.255.255.255"
-			, "255.255.255.254"
-			, "255.255.255.252"
-		 	, "255.255.255.248"
-		 	, "255.255.255.240"
-		 	, "255.255.255.224"
-		 	, "255.255.255.192"
-		 	, "255.255.255.128"
-		 	, "255.255.255.0"
-		 	, "255.255.254.0"
-		 	, "255.255.252.0"
-		 	, "255.255.248.0"
-		 	, "255.255.240.0"
-		 	, "255.255.224.0"
-		 	, "255.255.192.0"
-		 	, "255.255.128.0"
-		 	, "255.255.0.0"
-		 	, "255.254.0.0"
-		 	, "255.252.0.0"
-		 	, "255.248.0.0"
-		 	, "255.240.0.0"
-		 	, "255.224.0.0"
-		 	, "255.192.0.0"
-		 	, "255.128.0.0"
-		 	, "255.0.0.0"]
-
-		for mask in masks:
-			self.cidr_on(edit, mask)
-
-	def cidr_on(self, edit, mask):
-		ipmasks = self.view.find_all("\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3} " + mask)
-		ipmasks.reverse()
-		masks = []
-
-		for region in ipmasks:
-			regionstring = self.view.substr(region).split()
-			regionstart = region.end() - len(regionstring[1]) - 1
-			masks.append(sublime.Region(regionstart, region.end()))
-
-		for region in masks:
-			self.view.replace(edit, region, "/32")
-
-		#debug:
-#		for region in ipmasks:
-#			self.view.insert(edit, self.view.size(), "\nIP: " + self.view.substr(region))
-#
-#		for region in masks:
-#			self.view.insert(edit, self.view.size(), "\nIP: " + self.view.substr(region))
-
