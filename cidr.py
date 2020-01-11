@@ -5,6 +5,8 @@ import sublime, sublime_plugin
 class CidrOnCommand(sublime_plugin.TextCommand):
 	def run(self, edit):
 
+		self.selection = False
+
 		masks = {
 		" 255.255.255.255": "/32",
 		" 255.255.255.254": "/31",
@@ -37,18 +39,30 @@ class CidrOnCommand(sublime_plugin.TextCommand):
 			self.cidr_on(edit, mask, masks.get(mask))
 
 	def cidr_on(self, edit, mask, cidr):
-		ipmasks = self.view.find_all("\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}" + mask)
-		ipmasks.reverse()
-		masks = []
 
-		for region in ipmasks:
-			regionstring = self.view.substr(region).split()
-			regionstart = region.end() - len(regionstring[1]) - 1
-			masks.append(sublime.Region(regionstart, region.end()))
+		if self.view.sel()[0].empty():
+			#Nothing selected
+			self.selection = False
+		else:
+			#Something selected
+			self.selection = True
 
-		for region in masks:
-			self.view.replace(edit, region, cidr)
+		if self.selection == False:
+			print(self.selection)
+			ipmasks = self.view.find_all("\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}" + mask)
+			ipmasks.reverse()
+			masks = []
 
+			for region in ipmasks:
+				regionstring = self.view.substr(region).split()
+				regionstart = region.end() - len(regionstring[1]) - 1
+				masks.append(sublime.Region(regionstart, region.end()))
+
+			for region in masks:
+				self.view.replace(edit, region, cidr)
+
+		if self.selection == True:
+			print(self.selection)
 
 class CidrOffCommand(sublime_plugin.TextCommand):
 	def run(self, edit):
