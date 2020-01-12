@@ -39,7 +39,10 @@ class CidrOnCommand(sublime_plugin.TextCommand):
 			self.cidr_on(edit, mask, masks.get(mask))
 
 	def cidr_on(self, edit, mask, cidr):
+		masks = []
+		editregions = []
 
+		#Determine if text has been selected
 		if self.view.sel()[0].empty():
 			#Nothing selected
 			self.selection = False
@@ -47,11 +50,10 @@ class CidrOnCommand(sublime_plugin.TextCommand):
 			#Something selected
 			self.selection = True
 
+		#Replace in whole document
 		if self.selection == False:
-			print(self.selection)
 			ipmasks = self.view.find_all("\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}" + mask)
 			ipmasks.reverse()
-			masks = []
 
 			for region in ipmasks:
 				regionstring = self.view.substr(region).split()
@@ -61,8 +63,39 @@ class CidrOnCommand(sublime_plugin.TextCommand):
 			for region in masks:
 				self.view.replace(edit, region, cidr)
 
+		#Replace in selection only
 		if self.selection == True:
-			print(self.selection)
+			print("Replace in selection only")
+			ipmasks = self.view.find_all("\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}" + mask)
+			ipmasks.reverse()
+
+			#list of selection regions
+			sels = self.view.sel()
+
+			#split them into ip + mask
+			for region in ipmasks:
+				regionstring = self.view.substr(region).split()
+				regionstart = region.end() - len(regionstring[1]) - 1
+				#define mask region
+				masks.append(sublime.Region(regionstart, region.end()))
+
+				#create set of intersection between selections and masks
+#				for sel in sels:
+#					sel = sel.intersection(mask)
+					#print("\nSEL:\n" + self.view.substr(region.intersection(sel)))
+
+				print("SELS[0]:")
+				print(sels[0])
+				print("MASK[0]:")
+				print(masks[0])
+
+			for region in editregions:
+				print("\nDEBUG:\nEDITREGION: " + self.view.substr(region))
+				self.view.replace(edit, region, cidr)
+
+		print("\nEDITREGIONS:")
+		print(editregions)
+
 
 class CidrOffCommand(sublime_plugin.TextCommand):
 	def run(self, edit):
