@@ -88,10 +88,7 @@ class CidrOnCommand(sublime_plugin.TextCommand):
 				#inverse order
 				editregions.reverse()
 				#remove IP portion
-				print("Searching Mask: " + str(mask))
 				for region in editregions:
-					print("  Region: " + str(region))
-					print("Split: " + str(self.splitmasks(edit, region)))
 					region = self.splitmasks(edit, region)
 					#replace
 					self.view.replace(edit, region, self.masks[mask])
@@ -108,20 +105,15 @@ class CidrOnCommand(sublime_plugin.TextCommand):
 				if len(match) > 0:
 					#mask matched
 					for m in match:
-						print("M", m)
 						for sel in sels:
 							if not m.intersection(sel).empty():
 								intersection = m.intersection(sel)
-								print("Intersection", intersection)
 								editregions.append(intersection)
 				#inverse order
 				editregions.reverse()
-				print("EDITREGIONS INTERNAL:", editregions)
 				#remove IP portion
 				for region in editregions:
-					print("REGION", region)
 					region = self.splitmasks(edit, region)
-					print("SPLITREGION", region)
 					intersectregions.append(region)
 				#replace
 				for region in intersectregions:
@@ -133,8 +125,6 @@ class CidrOnCommand(sublime_plugin.TextCommand):
 		regionstart = ipmask.end() - len(regionstring[1]) - 1
 		regionend = ipmask.end()
 		newregion = sublime.Region(regionstart, regionend)
-		print("SPLITMASKS returning:")
-		print(newregion)
 		#return mask
 		return newregion
 
@@ -226,10 +216,7 @@ class CidrOffCommand(sublime_plugin.TextCommand):
 				#inverse order
 				editregions.reverse()
 				#remove IP portion
-				print("Searching CIDR: " + str(cidr))
 				for region in editregions:
-					print("  Region: " + str(region))
-					print("Split: " + str(self.splitcidrs(edit, region)))
 					region = self.splitcidrs(edit, region)
 					#replace
 					self.view.replace(edit, region, self.cidrs[cidr])
@@ -246,43 +233,19 @@ class CidrOffCommand(sublime_plugin.TextCommand):
 				if len(match) > 0:
 					#cidr matched
 					for m in match:
-						print("M", m)
 						for sel in sels:
 							if not m.intersection(sel).empty():
 								intersection = m.intersection(sel)
-								print("Intersection", intersection)
 								editregions.append(intersection)
 				#inverse order
 				editregions.reverse()
-				print("EDITREGIONS INTERNAL:", editregions)
 				#remove IP portion
 				for region in editregions:
-					print("REGION", region)
 					region = self.splitcidrs(edit, region)
-					print("SPLITREGION", region)
 					intersectregions.append(region)
 				#replace
 				for region in intersectregions:
 					self.view.replace(edit, region, self.cidrs[cidr])
-
-		########################################################
-		#DEBUG
-		print("RUN BLOCK EXECUTED")
-
-		print("\n[selection]: ")
-		print(selection)
-
-		print("\n[sels]: ")
-		print(sels)
-
-		print("\n[ipmasks]: ")
-		print(ipmasks)
-
-		print("\n[editregions]: ")
-		print(editregions)
-
-		print("\n[intersectregions]: ")
-		print(intersectregions)
 
 	def splitcidrs(self, edit, ipcidr):
 		#Populate editregions
@@ -290,7 +253,5 @@ class CidrOffCommand(sublime_plugin.TextCommand):
 		regionstart = ipcidr.end() - len(regionstring[1]) - 1
 		regionend = ipcidr.end()
 		newregion = sublime.Region(regionstart, regionend)
-		print("SPLITCIDRS returning:")
-		print(newregion)
 		#return cidr
 		return newregion
