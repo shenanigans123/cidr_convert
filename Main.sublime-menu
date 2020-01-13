@@ -1,0 +1,17 @@
+[
+    {
+        "id": "edit",
+        "children":
+        [
+            {
+                "id": "text",
+                "children":
+                [
+                    { "caption": "-" },
+                    { "command": "cidr_on" },
+                    { "command": "cidr_off" }
+                ]
+            }
+        ]
+    }
+]
