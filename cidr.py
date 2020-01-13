@@ -1,13 +1,10 @@
-# Documentation
-
 import sublime, sublime_plugin
 
 class CidrOnCommand(sublime_plugin.TextCommand):
+
 	def run(self, edit):
 
-		self.selection = False
-
-		masks = {
+		self.masks = {
 		" 255.255.255.255": "/32",
 		" 255.255.255.254": "/31",
 		" 255.255.255.252": "/30",
@@ -35,72 +32,7 @@ class CidrOnCommand(sublime_plugin.TextCommand):
 		" 255.0.0.0": "/8"
 		}
 
-		for mask in masks:
-			self.cidr_on(edit, mask, masks.get(mask))
-
-	def cidr_on(self, edit, mask, cidr):
-		masks = []
-		editregions = []
-
-		#Determine if text has been selected
-		if self.view.sel()[0].empty():
-			#Nothing selected
-			self.selection = False
-		else:
-			#Something selected
-			self.selection = True
-
-		#Replace in whole document
-		if self.selection == False:
-			ipmasks = self.view.find_all("\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}" + mask)
-			ipmasks.reverse()
-
-			for region in ipmasks:
-				regionstring = self.view.substr(region).split()
-				regionstart = region.end() - len(regionstring[1]) - 1
-				masks.append(sublime.Region(regionstart, region.end()))
-
-			for region in masks:
-				self.view.replace(edit, region, cidr)
-
-		#Replace in selection only
-		if self.selection == True:
-			print("Replace in selection only")
-			ipmasks = self.view.find_all("\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}" + mask)
-			ipmasks.reverse()
-
-			#list of selection regions
-			sels = self.view.sel()
-
-			#split them into ip + mask
-			for region in ipmasks:
-				regionstring = self.view.substr(region).split()
-				regionstart = region.end() - len(regionstring[1]) - 1
-				#define mask region
-				masks.append(sublime.Region(regionstart, region.end()))
-
-				#create set of intersection between selections and masks
-#				for sel in sels:
-#					sel = sel.intersection(mask)
-					#print("\nSEL:\n" + self.view.substr(region.intersection(sel)))
-
-				print("SELS[0]:")
-				print(sels[0])
-				print("MASK[0]:")
-				print(masks[0])
-
-			for region in editregions:
-				print("\nDEBUG:\nEDITREGION: " + self.view.substr(region))
-				self.view.replace(edit, region, cidr)
-
-		print("\nEDITREGIONS:")
-		print(editregions)
-
-
-class CidrOffCommand(sublime_plugin.TextCommand):
-	def run(self, edit):
-
-		masks = {
+		self.cidrs = {
 		"/32": " 255.255.255.255",
 		"/31": " 255.255.255.254",
 		"/30": " 255.255.255.252",
@@ -128,56 +60,106 @@ class CidrOffCommand(sublime_plugin.TextCommand):
 		"/8": " 255.0.0.0"
 		}
 
-		for mask in masks:
-			self.cidr_off(edit, mask, masks.get(mask))
+		#initialise variables
+		global editregions
+		global intersectregions
+		global selection
+		global sels
+		global ipmasks
+		selection = False
+		sels = self.view.sel()
+		ipmasks = []
+		editregions = []
+		intersectregions = []
 
-	def cidr_off(self, edit, mask, cidr):
-		ipmasks = self.view.find_all("\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}" + mask)
-		ipmasks.reverse()
-		masks = []
+		#check if selection exists
+		if self.view.sel()[0].empty():
+			#Nothing selected
+			selection = False
 
-		for region in ipmasks:
-			regionstring = self.view.substr(region).split("/")
-			regionstart = region.end() - len(regionstring[1]) - 1
-			masks.append(sublime.Region(regionstart, region.end()))
+			#find and replace each mask in document
+			for mask in self.masks:
+				editregions = []
+				match = self.view.find_all("\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}" + mask)
+				if len(match) > 0:
+					#mask matched
+					for m in match:
+						editregions.append(m)
+				#inverse order
+				editregions.reverse()
+				#remove IP portion
+				print("Searching Mask: " + str(mask))
+				for region in editregions:
+					print("  Region: " + str(region))
+					print("Split: " + str(self.splitmasks(edit, region)))
+					region = self.splitmasks(edit, region)
+					#replace
+					self.view.replace(edit, region, self.masks[mask])
 
-		for region in masks:
-			self.view.replace(edit, region, cidr)
+		else:
+			#Something selected
+			selection = True
+
+			#create set of intersections between sels and masks
+			for mask in self.masks:
+				editregions = []
+				intersectregions = []
+				match = self.view.find_all("\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}" + mask)
+				if len(match) > 0:
+					#mask matched
+					for m in match:
+						print("M", m)
+						for sel in sels:
+							if not m.intersection(sel).empty():
+								intersection = m.intersection(sel)
+								print("Intersection", intersection)
+								editregions.append(intersection)
+				#inverse order
+				editregions.reverse()
+				print("EDITREGIONS INTERNAL:", editregions)
+				#remove IP portion
+				for region in editregions:
+					print("REGION", region)
+					region = self.splitmasks(edit, region)
+					print("SPLITREGION", region)
+					intersectregions.append(region)
+				#replace
+				for region in intersectregions:
+					self.view.replace(edit, region, self.masks[mask])
 
 
-#debug:
-#		for region in ipmasks:
-#			self.view.insert(edit, self.view.size(), "\nIP: " + self.view.substr(region))
-#
-#		for region in masks:
-#			self.view.insert(edit, self.view.size(), "\nIP: " + self.view.substr(region))
 
 
+		########################################################
+		#DEBUG
+		print("RUN BLOCK EXECUTED")
 
-#		ipmasks = self.view.find_all("\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3} 255\.255\.255\.255")
-#		regionstring = ""
-#		masks = []
-#
-#		for region in ipmasks:
-#			regionstring = self.view.substr(region)
-#			regionstring = regionstring.split()
-#			ip = regionstring[0]
-#			mask = regionstring[1]
-#			iplen = len(ip)
-#			masklen = len(mask)
-#			regionend = region.end()
-#			regionstart = regionend - masklen - 1
-#			region = sublime.Region(regionstart, regionend)
-#			newregion = self.view.substr(region)
-#
-#			self.view.replace(edit, region, "/32")
-#			#debug:
-#			self.view.insert(edit, self.view.size(),
-#				"\nDEBUG:"
-#				 + "\nIP: " + ip
-#				 + "\nMask: " + mask
-#				 + "\niplen: " + str(iplen)
-#				 + "\nmasklen: " + str(masklen)
-#				 + "\nregionend: " + str(regionend)
-#				 + "\nregionstart: " + str(regionstart)
-#				 + "\nnewregion: " + newregion)
+		print("\n[selection]: ")
+		print(selection)
+
+		print("\n[sels]: ")
+		print(sels)
+
+		print("\n[ipmasks]: ")
+		print(ipmasks)
+
+		print("\n[editregions]: ")
+		print(editregions)
+
+		print("\n[intersectregions]: ")
+		print(intersectregions)
+
+	def replacer(self, edit, text, regions):
+		#input list of regions and dictionary of text:replace
+		print("REPLACER EXECUTED")
+
+	def splitmasks(self, edit, ipmask):
+		#Populate editregions
+		regionstring = self.view.substr(ipmask).split()
+		regionstart = ipmask.end() - len(regionstring[1]) - 1
+		regionend = ipmask.end()
+		newregion = sublime.Region(regionstart, regionend)
+		print("SPLITMASKS returning:")
+		print(newregion)
+		#return mask
+		return newregion
