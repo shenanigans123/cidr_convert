@@ -1,0 +1,10 @@
+[
+    {
+        "caption": "CIDR: On - convert IPs to CIDR notation",
+        "command": "cidr_on"
+    },
+    {
+        "caption": "CIDR: Off - convert IPs to non-CIDR notation",
+        "command": "cidr_off"
+    }
+]

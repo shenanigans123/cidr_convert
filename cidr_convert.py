@@ -117,6 +117,9 @@ class CidrOnCommand(sublime_plugin.TextCommand):
 					intersectregions.append(region)
 				#replace
 				for region in intersectregions:
+					offset = self.masks[mask]
+					print("Offset:", len(offset))
+					print("Region:", region)
 					self.view.replace(edit, region, self.masks[mask])
 
 	def splitmasks(self, edit, ipmask):
