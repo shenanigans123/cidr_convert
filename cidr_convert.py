@@ -76,7 +76,6 @@ class CidrOnCommand(sublime_plugin.TextCommand):
 		if self.view.sel()[0].empty():
 			#Nothing selected
 			selection = False
-
 			#find and replace each mask in document
 			for mask in self.masks:
 				editregions = []
@@ -96,7 +95,6 @@ class CidrOnCommand(sublime_plugin.TextCommand):
 		else:
 			#Something selected
 			selection = True
-
 			#create set of intersections between sels and masks
 			for mask in self.masks:
 				editregions = []
@@ -109,6 +107,7 @@ class CidrOnCommand(sublime_plugin.TextCommand):
 							if not m.intersection(sel).empty():
 								intersection = m.intersection(sel)
 								editregions.append(intersection)
+
 				#inverse order
 				editregions.reverse()
 				#remove IP portion
@@ -204,7 +203,6 @@ class CidrOffCommand(sublime_plugin.TextCommand):
 		if self.view.sel()[0].empty():
 			#Nothing selected
 			selection = False
-
 			#find and replace each cidr in document
 			for cidr in self.cidrs:
 				editregions = []
@@ -224,7 +222,6 @@ class CidrOffCommand(sublime_plugin.TextCommand):
 		else:
 			#Something selected
 			selection = True
-
 			#create set of intersections between sels and cidrs
 			for cidr in self.cidrs:
 				editregions = []
@@ -237,6 +234,7 @@ class CidrOffCommand(sublime_plugin.TextCommand):
 							if not m.intersection(sel).empty():
 								intersection = m.intersection(sel)
 								editregions.append(intersection)
+
 				#inverse order
 				editregions.reverse()
 				#remove IP portion
