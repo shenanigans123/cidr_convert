@@ -18,9 +18,13 @@ Edit -> Text -> CIDR On
 Default keyboard shortcuts:
 
 Windows/Linux:
-- `Ctrl+Alt+/ -> CIDR On`
-- `Ctrl+Alt+. -> CIDR Off`
+```
+Ctrl+Alt+/ -> CIDR On
+Ctrl+Alt+. -> CIDR Off
+```
 
 Mac:
-- `Ctrl+⌘+/ -> CIDR On`
-- `Ctrl+⌘+. -> CIDR Off`
+```
+Ctrl+⌘+/ -> CIDR On
+Ctrl+⌘+. -> CIDR Off
+```
